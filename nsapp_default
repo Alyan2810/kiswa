@@ -1,0 +1,141 @@
+<?php
+	//Standard Plan Template
+global $wpdb;
+
+$id = $_GET['id'];
+
+//$form_no = $sheet.'_form_no';
+$form_no =  trim($sheet,"sheet");
+	$current_date   = new DateTime();
+	$current_user = wp_get_current_user();
+	$naffco_emp_no = get_user_meta( $current_user->ID, "naffco_emp_no", true );
+	
+	global $post;
+    global $pdf_filename;
+	global $pdf_output;
+	global $pdf_header;
+	global $pdf_footer;
+	
+	global $pdf_margin_left;
+	global $pdf_margin_right;
+	global $pdf_margin_top;
+	global $pdf_margin_bottom;
+	global $pdf_margin_header;
+	global $pdf_margin_footer;
+
+	global $pdf_template_pdfpage;
+	global $pdf_template_pdfpage_page;
+	global $pdf_template_pdfdoc;
+
+	global $pdf_html_header;
+	global $pdf_html_footer;
+	
+	$pdf_margin_right = 20; 
+	$pdf_margin_left = 20;
+	//Set a pdf template. if both are set the pdfdoc is used. (You didn't need a pdf template)
+	$pdf_template_pdfpage 		= ''; //The filename off the pdf file (you need this for a page template)
+	$pdf_template_pdfpage_page 	= 1;  //The page off this page (you need this for a page template)
+
+	$pdf_template_pdfdoc  		= ''; //The filename off the complete pdf document (you need only this for a document template)
+	
+	$pdf_html_header 			= true; //If this is ture you can write instead of the array a html string on the var $pdf_header
+	$pdf_html_footer 			= true; //If this is ture you can write instead of the array a html string on the var $pdf_footer
+	
+	
+   
+   $data_chklist = $wpdb->get_results("
+	select 
+	pr.customer_name as customer_name,
+	pr.chk_list_date as chk_list_date,
+	pr.project as project,
+	pr.location as location,
+	pr.area_name as area_name,
+	pr.cylinder_no as cylinder_no,
+	pr.final_remartks as final_remartks,
+	pr.created_on as created_on,
+	asp.product_name as product_name
+	
+	from ".$wpdb->prefix."product_reports as pr LEFT JOIN ".$wpdb->prefix.".as_products as asp ON pr.FK_product_ID = asp.PK_ID   where pr.PK_ID = ".$id );
+   
+   
+	$data_chklist = $data_chklist[0];
+	
+	
+	$pdf_output = '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+					<html xml:lang="ar">
+					<head>
+						<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+						<title>' . get_bloginfo() . '</title>
+					</head>
+					<body xml:lang="ar" dir="rtl">
+						<bookmark content="'.htmlspecialchars(get_bloginfo('name'), ENT_QUOTES).'" level="0" /><tocentry content="'.htmlspecialchars(get_bloginfo('name'), ENT_QUOTES).'" level="0" />
+						<htmlpageheader name="P1Header">
+						<table  width="100%">
+									<tbody>
+										<tr>
+											<td><img src="http://localhost/wedad/wp-content/uploads/2014/06/logo_415_2.jpg"  width="329" height="120" /></td>
+											<td> '.__('AFTER SALES DEPARTMENT', 'nsapp').'<br>'.$data_chklist->product_name.' </td>
+										</tr>
+									</tbody>
+								</table>
+						</htmlpageheader>
+						<htmlpagefooter name="P1Footer">
+							<table style="border-top: 1px solid #000000; vertical-align: bottom; font-family: serif; font-size: 8pt; color: #000000; font-weight: bold; font-style: italic;" width="100%">
+									<tbody>
+										<tr>
+											<td width="33%" style="font-weight: bold; font-style: italic;" width="33%">'.$current_user->user_firstname .' '.$current_user->user_lastname.'('.$naffco_emp_no.')</td>
+											<td style="text-align: left; ">{PAGENO} / {nb}</td>
+										</tr>
+									</tbody>
+								</table>
+						</htmlpagefooter>
+						<htmlpageheader name="otherHeader">
+								
+							</htmlpageheader>
+							<htmlpagefooter name="otherFooter">
+								<table style="border-top: 1px solid #000000; vertical-align: bottom; font-family: serif; font-size: 8pt; color: #000000; font-weight: bold; font-style: italic;" width="100%">
+									<tbody>
+										<tr>
+											<td width="33%" style="font-weight: bold; font-style: italic;" width="33%">'.$current_user->user_firstname .' '.$current_user->user_lastname.'('.$naffco_emp_no.') </td>
+											<td style="text-align: left; ">{PAGENO} / {nb}</td>
+										</tr>
+									</tbody>
+								</table>
+							</htmlpagefooter>
+						<div id="content" >';
+	
+					$pdf_filename = "AfterSalesCheckList";
+					$pdf_output .= '<div id="result_front">
+									<p style="height:30px;">
+									 <h2>'. __('After Sales Product Check List', 'nsapp') .'</h2>
+									</p>
+									<div class="row bold_text">
+												<div class=" col-12 ">
+												<table class ="table" >
+													  <tr>
+														<td  valign="middle">'.__('Customer Name', 'nsapp').':</td>
+														<td  valign="middle" class="text-info" >'.$data_chklist->customer_name .'</td>
+													 	<td  valign="middle">'.__('Date', 'nsapp').':</td>
+														<td  valign="middle" class="text-info" >'.$data_chklist->chk_list_date .'</td>
+													  </tr>
+													  
+													 <tr>
+														<td  valign="middle" colspan="4"><hr></td>
+													 </tr>
+													 
+													 
+													 
+													 
+													
+													  </table>
+													  </div>
+													  </div>
+									
+									
+									';
+					$pdf_output .= ' </div></div> <!--content-->';	
+					$pdf_output .= '</body></html>';
+	
+	
+	
+?>
